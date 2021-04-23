@@ -8,3 +8,5 @@ See VillagerActor.cs for an example, where it will pick a random point to path t
 I've largely optimized for memory usage, however it will still need some improvements for performance. Additionally pathfinding is done using lists which will be changed out to a more efficient structure, likely a heap.
 
 ![e5d677538083619ace97d95fea7edfc7](https://user-images.githubusercontent.com/14932139/115832569-0910d800-a3e1-11eb-89e1-af1e45a9da3a.gif)
+
+![3c8a2b50e2177905800ff1842c3e5565](https://user-images.githubusercontent.com/14932139/115919589-0b0d8200-a447-11eb-9afd-b978a383f9d3.gif)
