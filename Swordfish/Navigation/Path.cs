@@ -26,7 +26,7 @@ public class Path
         //  this can be used to create a new path when a waypoint is reached
         //  This will result in long/complex treks being inaccurate, see: AoE 2 pathing
 
-        Heap<Cell> openList = new Heap<Cell>( World.GetGridSize() ); //  Cells waiting to be tested
+        Heap<Cell> openList = new Heap<Cell>( Constants.PATH_HEAP_SIZE ); //  Cells waiting to be tested
         List<Cell> testedList = new List<Cell>();   //  Cells which have been tested
 
         //  Our starting point has to be tested...
@@ -61,7 +61,7 @@ public class Path
             foreach(Cell neighbor in current.neighbors())
             {
                 //  Ignore this neighbor if we can't path to it or it has already been tested
-                if (neighbor.occupied == true || neighbor.weight != 0 || testedList.Contains(neighbor))
+                if (neighbor.weight != 0 || testedList.Contains(neighbor))
                 {
                     continue;
                 }

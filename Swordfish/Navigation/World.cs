@@ -16,6 +16,9 @@ public class World : Singleton<World>
     public static int GetGridSize() { return Instance.gridSize; }
     public static float GetGridUnit() { return Instance.gridUnit; }
 
+    //  Shorthand access to grid
+    public static Cell at(int x, int y) { return Instance.grid.at(x, y); }
+
     private void Start()
     {
         grid = new Grid(gridSize);

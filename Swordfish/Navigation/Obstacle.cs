@@ -14,14 +14,14 @@ public class Obstacle : Actor
     {
         base.Initialize();
 
-        //  Occupy all cells within dimensions
+        //  Block all cells within bounds
         Cell cell;
         for (int x = 0; x < dimensions.x; x++)
         {
             for (int y = 0; y < dimensions.y; y++)
             {
                 cell = World.GetGrid().at( (int)(transform.position.x + offset.x - Mathf.Floor(dimensions.x/2)) + x, (int)(transform.position.z + offset.y - Mathf.Floor(dimensions.y/2)) + y );
-                cell.occupied = true;
+                cell.weight = 10;
             }
         }
     }

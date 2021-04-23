@@ -11,6 +11,7 @@ public class Actor : MonoBehaviour
     public byte tickTimer = 0;
 
     public List<Cell> currentPath = null;
+    public byte failedPathAttempts = 0;
 
 #region monobehavior
 
@@ -41,10 +42,27 @@ public class Actor : MonoBehaviour
             //  TODO: interpolate for smooth movement
             if (HasValidPath())
             {
-                SetPosition( currentPath[0].x, currentPath[0].y );
-                currentPath.RemoveAt(0);    //  Remove this point on the path
+                //  Attempt to move to the next point
+                if (SetPosition( currentPath[0].x, currentPath[0].y ))
+                {
+                    currentPath.RemoveAt(0);
+                    failedPathAttempts = 0;
+                }
+                //  Unable to reach the next point, re-route if we've failed a # of tries
+                else
+                {
+                    failedPathAttempts++;
 
-                if (currentPath.Count == 0) currentPath = null;
+                    if (failedPathAttempts > Constants.PATHFINDING_MAX_ATTEMPTS)
+                    {
+                        currentPath = null;
+                        failedPathAttempts = 0;
+                    }
+                }
+
+                //  Don't hang onto an empty path. Save a little memory
+                if (currentPath.Count == 0)
+                    currentPath = null;
             }
         }
     }
@@ -95,22 +113,22 @@ public class Actor : MonoBehaviour
     public void Goto(Vector3 vec) { Goto((int)vec.x, (int)vec.z); }
     public void Goto(int x, int y)
     {
-        currentPath = Path.Find( GetCell(), World.GetGrid().at(x, y) );
+        PathManager.RequestPath(this, x, y);
     }
 
     //  Move relative to current position
-    public void Move(Direction dir) { Move(dir.toVector3()); }
-    public void Move(Vector2 vec) { Move((int)vec.x, (int)vec.y); }
-    public void Move(Vector3 vec) { Move((int)vec.x, (int)vec.z); }
-    public void Move(int x, int y)
+    public bool Move(Direction dir) { return Move(dir.toVector3()); }
+    public bool Move(Vector2 vec) { return Move((int)vec.x, (int)vec.y); }
+    public bool Move(Vector3 vec) { return Move((int)vec.x, (int)vec.z); }
+    public bool Move(int x, int y)
     {
-        SetPosition( (int)transform.position.x + x, (int)transform.position.z + y );
+        return SetPosition( (int)transform.position.x + x, (int)transform.position.z + y );
     }
 
     //  Set position snapped to the grid
-    public void SetPosition(Vector2 p) { SetPosition((int)p.x, (int)p.y); }
-    public void SetPosition(Vector3 p) { SetPosition((int)p.x, (int)p.z); }
-    public void SetPosition(int x, int y)
+    public bool SetPosition(Vector2 p) { return SetPosition((int)p.x, (int)p.y); }
+    public bool SetPosition(Vector3 p) { return SetPosition((int)p.x, (int)p.z); }
+    public bool SetPosition(int x, int y)
     {
         Cell to = World.GetGrid().at(x, y);
 
@@ -123,7 +141,11 @@ public class Actor : MonoBehaviour
             //  Move the transform and change occupied state of the cell we went to
             transform.position = new Vector3(to.x, 0, to.y);    //  Inherantly hard snap with no casting overhead
             to.occupied = true;
+
+            return true;    //  We were able to move
         }
+
+        return false;   // We were unable to move
     }
 
     //  Set the current cell to be occupied
