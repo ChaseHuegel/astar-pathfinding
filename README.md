@@ -5,7 +5,7 @@ An implementation of A* in C# that plugs right into Unity. Remove the calls to U
 
 See VillagerActor.cs for an example, where it will pick a random point to path to unless you click somewhere to move.
 
-I've largely optimized for memory usage, however it will still need some improvements for performance. Additionally pathfinding is done using lists which will be changed out to a more efficient structure, likely a heap.
+I've largely optimized for memory usage, however it will still need some improvements for performance.
 
 ![e5d677538083619ace97d95fea7edfc7](https://user-images.githubusercontent.com/14932139/115832569-0910d800-a3e1-11eb-89e1-af1e45a9da3a.gif)
 
