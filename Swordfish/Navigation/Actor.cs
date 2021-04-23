@@ -59,7 +59,7 @@ public class Actor : MonoBehaviour
             foreach (Cell cell in currentPath)
             {
                 Gizmos.color = Color.cyan;
-                Gizmos.DrawSphere(new Vector3(cell.x, 0, cell.y), 0.15f);
+                Gizmos.DrawSphere(new Vector3(cell.x, 0, cell.y), 0.25f);
             }
         }
     }

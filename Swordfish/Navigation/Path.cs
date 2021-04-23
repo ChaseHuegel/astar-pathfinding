@@ -21,12 +21,12 @@ public class Path
 
     public static List<Cell> Find(Cell start, Cell end)
     {
-        //  TODO: Pathfinding should only be out to a max distance
+        //  TODO: waypoint system to break down long or complex treks into multiple pathfind attempts
         //  a 'waypoint' can represent the end of this path but not the actual end goal
-        //  this can be used to create a new path when a waypoint is reached to save on overhead
-        //  This will result in long treks being inaccurate, see: AoE 2 pathing
+        //  this can be used to create a new path when a waypoint is reached
+        //  This will result in long/complex treks being inaccurate, see: AoE 2 pathing
 
-        List<Cell> openList = new List<Cell>(); //  Cells waiting to be tested
+        Heap<Cell> openList = new Heap<Cell>( World.GetGridSize() ); //  Cells waiting to be tested
         List<Cell> testedList = new List<Cell>();   //  Cells which have been tested
 
         //  Our starting point has to be tested...
@@ -35,21 +35,8 @@ public class Path
         Cell current;
         while (openList.Count > 0)  //  As long as there are cells to be tested
         {
-            current = openList[0];  //  Default to the first open cell
-
-            //  Compare the current cell against any others in the open list.
-            //  Find the open cell with the lowest movement cost.
-            //  Use the heuristic distance as a tie breaker
-            for (int i = 1; i < openList.Count; i++)
-            {
-                if (openList[i].fCost < current.fCost || openList[i].fCost == current.fCost)
-                    if (openList[i].hCost < current.hCost)
-                        current = openList[i];
-            }
-
-            //  Move current cell to the tested list
-            openList.Remove(current);
-            testedList.Add(current);
+            current = openList.RemoveFirst();  //  Default to the first open cell
+            testedList.Add(current);    //  Move current cell to the tested list
 
             //  We've reached the end point
             if (current == end)
@@ -57,11 +44,11 @@ public class Path
                 List<Cell> path = new List<Cell>();
 
                 //  Trace a path back to the start and reverse it
-                Cell tracingNode = end;
-                while (tracingNode != start)
+                Cell tracingCell = end;
+                while (tracingCell != start)
                 {
-                    path.Add(tracingNode);
-                    tracingNode = tracingNode.parent;
+                    path.Add(tracingCell);
+                    tracingCell = tracingCell.parent;
                 }
 
                 path.Reverse();

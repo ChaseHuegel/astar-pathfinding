@@ -5,19 +5,37 @@ using UnityEngine;
 namespace Swordfish.Navigation
 {
 
-public class Cell
+public class Cell : IHeapItem<Cell>
 {
     public Grid grid = null;
     public int x, y;
     public byte weight = 0;
     public bool occupied = false;
 
-    //  Pathfinding data
-    //  TODO: This should not be stored in the cells
+    //  Pathfinding info
+    //  TODO: try to pull this out of the cell class
+    //  Currently this has the least memory overhead
     public Cell parent;
     public byte gCost = 0;
     public byte hCost = 0;
     public byte fCost = 0;
+
+    public int heapIndex = 0;
+    public int HeapIndex
+    {
+        get { return heapIndex; }
+        set { heapIndex = value; }
+    }
+
+    public int CompareTo(Cell cell)
+    {
+        int compare = fCost.CompareTo(cell.fCost);
+
+        if (compare == 0)
+            compare = hCost.CompareTo(cell.hCost);
+
+        return -compare;
+    }
 
     public Coord2D GetCoord()
     {
@@ -36,12 +54,18 @@ public class Cell
     {
         List<Cell> cells = new List<Cell>();
 
-        cells.Add( grid.at( x + 1, y) );
-        cells.Add( grid.at( x + 1, y + 1) );
-        cells.Add( grid.at( x, y + 1) );
+        //  Neighbors are ordered counter clockwise
+
+        //  Diagonals
         cells.Add( grid.at( x - 1, y + 1) );
-        cells.Add( grid.at( x - 1, y) );
+        cells.Add( grid.at( x + 1, y + 1) );
         cells.Add( grid.at( x - 1, y - 1) );
+        cells.Add( grid.at( x + 1, y - 1) );
+
+        //  Direct neighbors
+        cells.Add( grid.at( x + 1, y) );
+        cells.Add( grid.at( x, y + 1) );
+        cells.Add( grid.at( x - 1, y) );
         cells.Add( grid.at( x, y - 1) );
 
         return cells;
