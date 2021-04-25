@@ -9,7 +9,8 @@ public class Body : MonoBehaviour
 {
     public Coord2D gridPosition = new Coord2D(0, 0);
 
-#region monobehavior
+    public virtual void Initialize() {}
+    public virtual void Tick() {}
 
     private void Start()
     {
@@ -19,30 +20,21 @@ public class Body : MonoBehaviour
         //  Do NOT round unless necessary! Movement is bound to the grid, accuracy not an issue
         HardSnapToGrid();
 
-        UpdateCell();   //  Tell the actor's cell that it's occupied
-
         Initialize();
     }
-#endregion
-
-#region mutable methods
-
-    public virtual void Initialize() {}
-    public virtual void Tick() {}
-#endregion
 
 
 #region getters setters
 
     public Cell GetCellAtTransform()
     {
-        Vector3 pos = transform.position - World.GetPositionOffset();
-        return World.GetGrid().at((int)pos.x, (int)pos.z);
+        Vector3 pos = World.ToWorldSpace(transform.position);
+        return World.Grid.at((int)pos.x, (int)pos.z);
     }
 
     public Cell GetCellAtGrid()
     {
-        return World.GetGrid().at(gridPosition.x, gridPosition.y);
+        return World.Grid.at(gridPosition.x, gridPosition.y);
     }
 #endregion
 
@@ -63,7 +55,7 @@ public class Body : MonoBehaviour
     public bool SetPosition(Vector3 p) { return SetPosition((int)p.x, (int)p.z); }
     public bool SetPosition(int x, int y)
     {
-        Cell to = World.GetGrid().at(x, y);
+        Cell to = World.at(x, y);
 
         if ( !to.occupied && to.passable)
         {
@@ -81,10 +73,23 @@ public class Body : MonoBehaviour
         return false;   // We were unable to move
     }
 
+    //  Force to a spot in the grid regardless of what else is there
+    public void SetPositionUnsafe(int x, int y)
+    {
+        Cell to = World.at(x, y);
+        Cell from = GetCellAtGrid();
+
+        from.occupied = false;
+        to.occupied = true;
+
+        gridPosition.x = x;
+        gridPosition.y = y;
+    }
+
     //  Set the current cell to be occupied
     public void UpdateCell()
     {
-        Cell cell = World.GetGrid().at(gridPosition.x, gridPosition.y);
+        Cell cell = World.Grid.at(gridPosition.x, gridPosition.y);
         cell.occupied = true;
     }
 
@@ -93,9 +98,11 @@ public class Body : MonoBehaviour
     {
         transform.position = new Vector3( (int)transform.position.x, transform.position.y, (int)transform.position.z );
 
-        Vector3 pos = transform.position - World.GetPositionOffset();
+        Vector3 pos = World.ToWorldSpace(transform.position);
         gridPosition.x = (int)pos.x;
         gridPosition.y = (int)pos.z;
+
+        UpdateCell();
     }
 
     //  Perform a 'hard' snap by rounding. More accurate with more overhead.
@@ -103,9 +110,17 @@ public class Body : MonoBehaviour
     {
         transform.position = new Vector3( Mathf.RoundToInt(transform.position.x), transform.position.y, Mathf.RoundToInt(transform.position.z) );
 
-        Vector3 pos = transform.position - World.GetPositionOffset();
+        Vector3 pos = World.ToWorldSpace(transform.position);
         gridPosition.x = Mathf.RoundToInt(pos.x);
         gridPosition.y = Mathf.RoundToInt(pos.z);
+
+        UpdateCell();
+    }
+
+    //  Force the transform to match the grid position
+    public void UpdateTransform()
+    {
+        transform.position = World.ToWorldSpace(new Vector3(gridPosition.x, transform.position.y, gridPosition.y));
     }
 #endregion
 }

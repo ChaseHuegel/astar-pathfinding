@@ -7,7 +7,7 @@ namespace Swordfish.Navigation
 
 public class Obstacle : Body
 {
-    public bool bakeOnStart = false;
+    public bool bakeOnStart = true;
     public bool rebake = false;
     public Vector2 dimensions;
     public Vector2 offset;
@@ -38,13 +38,17 @@ public class Obstacle : Body
     {
         //  Block all cells within bounds
         Cell cell;
-        for (int x = 0; x < dimensions.x; x++)
+        for (int x = 0; x < dimensions.x * World.GetScale(); x++)
         {
-            for (int y = 0; y < dimensions.y; y++)
+            for (int y = 0; y < dimensions.y * World.GetScale(); y++)
             {
-                Vector3 pos = transform.position - World.GetPositionOffset();
+                Vector3 pos = World.ToWorldSpace(transform.position);
 
-                cell = World.GetGrid().at( Mathf.RoundToInt(pos.x + offset.x - Mathf.Floor(dimensions.x/2)) + x, Mathf.RoundToInt(pos.z + offset.y - Mathf.Floor(dimensions.y/2)) + y );
+                cell = World.at(
+                    Mathf.RoundToInt(pos.x + offset.x - Mathf.Floor(dimensions.x/2 * World.GetScale())) + x,
+                    Mathf.RoundToInt(pos.z + offset.y - Mathf.Floor(dimensions.y/2 * World.GetScale())) + y
+                    );
+
                 cell.passable = false;
             }
         }
@@ -54,13 +58,17 @@ public class Obstacle : Body
     {
         //  Unblock all cells within bounds
         Cell cell;
-        for (int x = 0; x < dimensions.x; x++)
+        for (int x = 0; x < dimensions.x * World.GetScale(); x++)
         {
-            for (int y = 0; y < dimensions.y; y++)
+            for (int y = 0; y < dimensions.y * World.GetScale(); y++)
             {
-                Vector3 pos = transform.position - World.GetPositionOffset();
+                Vector3 pos = World.ToWorldSpace(transform.position);
 
-                cell = World.GetGrid().at( Mathf.RoundToInt(pos.x + offset.x - Mathf.Floor(dimensions.x/2)) + x, Mathf.RoundToInt(pos.z + offset.y - Mathf.Floor(dimensions.y/2)) + y );
+                cell = World.at(
+                    Mathf.RoundToInt(pos.x + offset.x - Mathf.Floor(dimensions.x/2 * World.GetScale())) + x,
+                    Mathf.RoundToInt(pos.z + offset.y - Mathf.Floor(dimensions.y/2 * World.GetScale())) + y
+                    );
+
                 cell.passable = true;
             }
         }

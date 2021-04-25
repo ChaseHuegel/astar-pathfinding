@@ -14,14 +14,37 @@ public class Actor : Body
     private byte pathRepathTries = 0;
 
     private byte tickTimer = 0;
-
-#region getters setters
+    private bool frozen = false;
 
     public bool HasValidPath() { return (currentPath != null && currentPath.Count > 0); }
-#endregion
+
+    public void Freeze() { frozen = true; }
+    public void Unfreeze() { frozen = false; UpdatePosition(); }
+    public void ToggleFreeze()
+    {
+        if (frozen = !frozen == false) UpdatePosition();
+    }
 
 
 #region immutable methods
+
+    public void UpdatePosition()
+    {
+        HardSnapToGrid();
+        ResetPathing();
+    }
+
+    public void ResetAI()
+    {
+        pathWaitTries = 0;
+        pathRepathTries = 0;
+    }
+
+    public void ResetPathing()
+    {
+        currentPath = null;
+        ResetAI();
+    }
 
     //  Pathfind to a position
     public void Goto(Direction dir, int distance) { Goto(dir.toVector3() * distance); }
@@ -37,7 +60,7 @@ public class Actor : Body
 #region monobehavior
 
     //  Perform ticks at a regular interval. FixedUpdate is called 60x/s
-    public virtual void FixedUpdate()
+    public void FixedUpdate()
     {
         tickTimer++;
         if (tickTimer >= Constants.ACTOR_TICK_RATE)
@@ -46,15 +69,14 @@ public class Actor : Body
             Tick();
 
             //  If we have a valid path, move along it
-            if (HasValidPath())
+            if (HasValidPath() && !frozen)
             {
                 //  Attempt to move to the next point
                 if (SetPosition( currentPath[0].x, currentPath[0].y ))
                 {
                     currentPath.RemoveAt(0);
 
-                    pathWaitTries = 0;
-                    pathRepathTries = 0;
+                    ResetAI();
                 }
                 //  Unable to reach the next point
                 else
@@ -70,9 +92,7 @@ public class Actor : Body
                         //  Give up after repathing a number of times
                         else
                         {
-                            currentPath = null;
-                            pathWaitTries = 0;
-                            pathRepathTries = 0;
+                            ResetPathing();
                         }
 
                         pathRepathTries++;
@@ -81,14 +101,14 @@ public class Actor : Body
 
                 //  Don't hang onto an empty path. Save a little memory
                 if (currentPath != null && currentPath.Count == 0)
-                    currentPath = null;
+                    ResetPathing();
             }
         }
 
-        //  Interpolate movement
-        if (transform.position.x != gridPosition.x && transform.position.z != gridPosition.y)
+        //  Interpolate movement as long as we're not frozen
+        if (!frozen && transform.position.x != gridPosition.x && transform.position.z != gridPosition.y)
         {
-            transform.position = Vector3.Lerp(transform.position, new Vector3(gridPosition.x, transform.position.y, gridPosition.y) + World.GetPositionOffset(), Time.fixedDeltaTime * movementInterpolation);
+            transform.position = Vector3.Lerp(transform.position, World.ToTransformSpace(new Vector3(gridPosition.x, transform.position.y, gridPosition.y)), Time.fixedDeltaTime * movementInterpolation);
         }
     }
 
@@ -102,7 +122,7 @@ public class Actor : Body
             foreach (Cell cell in currentPath)
             {
                 Gizmos.color = Color.cyan;
-                Gizmos.DrawSphere(new Vector3(cell.x, 0, cell.y) + World.GetPositionOffset(), 0.25f);
+                Gizmos.DrawSphere(World.ToTransformSpace(new Vector3(cell.x, 0, cell.y)), 0.25f * World.GetUnit());
             }
         }
     }
