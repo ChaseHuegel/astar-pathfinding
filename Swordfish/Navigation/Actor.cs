@@ -47,12 +47,12 @@ public class Actor : Body
     }
 
     //  Pathfind to a position
-    public void Goto(Direction dir, int distance) { Goto(dir.toVector3() * distance); }
-    public void Goto(Vector2 vec) { Goto((int)vec.x, (int)vec.y); }
-    public void Goto(Vector3 vec) { Goto((int)vec.x, (int)vec.z); }
-    public void Goto(int x, int y)
+    public void Goto(Direction dir, int distance, bool ignoreActors = true) { Goto(dir.toVector3() * distance, ignoreActors); }
+    public void Goto(Vector2 vec, bool ignoreActors = true) { Goto((int)vec.x, (int)vec.y, ignoreActors); }
+    public void Goto(Vector3 vec, bool ignoreActors = true) { Goto((int)vec.x, (int)vec.z, ignoreActors); }
+    public void Goto(int x, int y, bool ignoreActors = true)
     {
-        PathManager.RequestPath(this, x, y);
+        PathManager.RequestPath(this, x, y, ignoreActors);
     }
 #endregion
 
@@ -88,7 +88,11 @@ public class Actor : Body
                     {
                         //  Path isn't clearing, try repathing
                         if (pathRepathTries < Constants.PATH_REPATH_TRIES)
-                            Goto( currentPath[currentPath.Count - 1].x + Random.Range(-1, 1), currentPath[currentPath.Count - 1].y + Random.Range(-1, 1) );
+                            Goto(
+                                currentPath[currentPath.Count - 1].x + Random.Range(-1, 1),
+                                currentPath[currentPath.Count - 1].y + Random.Range(-1, 1),
+                                false    //  false, dont ignore actors. Stuck and may need to path around them
+                                );
                         //  Give up after repathing a number of times
                         else
                         {

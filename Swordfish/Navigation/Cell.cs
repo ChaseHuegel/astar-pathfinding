@@ -55,19 +55,27 @@ public class Cell : IHeapItem<Cell>
     {
         List<Cell> cells = new List<Cell>();
 
-        //  Neighbors are ordered counter clockwise
-
         //  Diagonals
-        cells.Add( grid.at( x - 1, y + 1) );
-        cells.Add( grid.at( x + 1, y + 1) );
-        cells.Add( grid.at( x - 1, y - 1) );
-        cells.Add( grid.at( x + 1, y - 1) );
+        // cells.Add( grid.at( x - 1, y + 1) );
+        // cells.Add( grid.at( x + 1, y + 1) );
+        // cells.Add( grid.at( x - 1, y - 1) );
+        // cells.Add( grid.at( x + 1, y - 1) );
 
         //  Direct neighbors
+        // cells.Add( grid.at( x + 1, y) );
+        // cells.Add( grid.at( x, y + 1) );
+        // cells.Add( grid.at( x - 1, y) );
+        // cells.Add( grid.at( x, y - 1) );
+
+        //  ordered counter clockwise starting from right
         cells.Add( grid.at( x + 1, y) );
+        cells.Add( grid.at( x + 1, y + 1) );
         cells.Add( grid.at( x, y + 1) );
+        cells.Add( grid.at( x - 1, y + 1) );
         cells.Add( grid.at( x - 1, y) );
+        cells.Add( grid.at( x - 1, y - 1) );
         cells.Add( grid.at( x, y - 1) );
+        cells.Add( grid.at( x + 1, y - 1) );
 
         return cells;
     }

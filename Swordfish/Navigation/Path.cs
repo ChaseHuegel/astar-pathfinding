@@ -19,15 +19,15 @@ public class Path
             return 14*lengthX + 10*(lengthY - lengthX);
     }
 
-    public static List<Cell> Find(Cell start, Cell end)
+    public static List<Cell> Find(Cell start, Cell end, bool ignoreActors = true)
     {
         //  TODO: waypoint system to break down long or complex treks into multiple pathfind attempts
         //  a 'waypoint' can represent the end of this path but not the actual end goal
         //  this can be used to create a new path when a waypoint is reached
         //  This will result in long/complex treks being inaccurate, see: AoE 2 pathing
 
-        Heap<Cell> openList = new Heap<Cell>( Constants.PATH_HEAP_SIZE ); //  Cells waiting to be tested
-        List<Cell> testedList = new List<Cell>();   //  Cells which have been tested
+        Heap<Cell> openList = new Heap<Cell>(Constants.PATH_HEAP_SIZE); //  Cells waiting to be tested
+        Heap<Cell> testedList = new Heap<Cell>(Constants.PATH_HEAP_SIZE);   //  Cells which have been tested
 
         //  Our starting point has to be tested...
         openList.Add(start);
@@ -60,23 +60,27 @@ public class Path
             //  Not there yet! Go through all neighbors of the current cell..
             foreach(Cell neighbor in current.neighbors())
             {
-                //  Ignore this neighbor if we can't path to it or it has already been tested
+                //  Ignore this neighbor if its solid or it has already been tested
                 if (!neighbor.passable || testedList.Contains(neighbor))
-                {
                     continue;
-                }
+
+                //  Are we pathing around actors? If so, ignore occupied neighbors
+                //  By default we ignore actors, otherwise we would get a slower
+                //  route just because a narrow path is blocked by another actor that may be moving
+                if (!ignoreActors && neighbor.occupied)
+                    continue;
 
                 bool neighborInOpenList = openList.Contains(neighbor);
 
                 //  Move cost is the current cell's cost + the heuristic distance between the cell + neighbor
-                byte moveCost = (byte)(current.gCost + Distance(current.GetCoord(), neighbor.GetCoord()));
+                byte moveCost = (byte)(neighbor.weight + current.gCost + Distance(current.GetCoord(), neighbor.GetCoord()));
 
                 //  Update neighbor if its cost is lower than the move cost OR it isnt in the open list yet
                 if (moveCost < neighbor.gCost || !neighborInOpenList)
                 {
                     neighbor.gCost = (byte)moveCost;    //  Move cost
                     neighbor.hCost = (byte)Distance( neighbor.GetCoord(), end.GetCoord() ); //  Heuristic move cost
-                    neighbor.fCost = (byte)(neighbor.gCost + neighbor.hCost + neighbor.weight);   //  Final move cost
+                    neighbor.fCost = (byte)(neighbor.gCost + neighbor.hCost);   //  Final move cost
 
                     neighbor.parent = current;  //  Assign parent for retracing a path to this neighbor
 

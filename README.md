@@ -1,5 +1,5 @@
 # astar-pathfinding
-A* pathfinding in C# for my Swordfish library with simple but clever pathfinding AI
+Multithreaded A* pathfinding in C# for my Swordfish library with simple but clever pathfinding AI
 
 An implementation of A* in C# that plugs right into Unity. To get started, create a class inheriting from Actor and then use Actor.Goto() and watch it come to life it avoids other actors and obstacles! The pathfinding grid can be updated on the fly for dynamic environments, which allows for actors to be considered obstacles and gives way for something like an RTS where a player can put down a building. The Obstacle class is a static actor which will block a specified rectangle area from pathing. Use the obstacle class to define trees, rocks, buildings, etc. See VillagerActor.cs for an example of how to use Actor.Goto
 

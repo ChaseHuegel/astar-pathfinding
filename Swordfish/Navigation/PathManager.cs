@@ -1,6 +1,8 @@
 using System.Collections;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
+using System.Diagnostics;
 using UnityEngine;
+using Swordfish.Threading;
 
 namespace Swordfish.Navigation
 {
@@ -12,55 +14,85 @@ public class PathManager : Singleton<PathManager>
     {
         public Actor actor;
         public Coord2D target;
+        public bool ignoreActors;
 
-        public PathRequest(Actor actor, int x, int y)
+        public PathRequest(Actor actor, int x, int y, bool ignoreActors = true)
         {
             this.actor = actor;
             this.target = new Coord2D(x, y);
+            this.ignoreActors = ignoreActors;
         }
     }
 
-    [SerializeField] protected int requestsPerUpdate = 1;
-    protected Queue<PathRequest> requests;
+    protected ConcurrentQueue<PathRequest> pathingQueue;    //  Requests ready to pathfind
+    protected ConcurrentQueue<PathRequest> requests;        //  Requests needing verification
 
     private PathRequest currentRequest;
+    private ThreadWorker pathingThread;
+    private ThreadWorker requestThread;
+
+    public static void RequestPath(Actor actor, int targetX, int targetY, bool ignoreActors = true)
+    {
+        Instance.requests.Enqueue( new PathRequest(actor, targetX, targetY, ignoreActors) );
+    }
 
     public void Start()
     {
-        requests = new Queue<PathRequest>();
+        pathingQueue = new ConcurrentQueue<PathRequest>();
+        requests = new ConcurrentQueue<PathRequest>();
+
+        pathingThread = new ThreadWorker(HandleRequest);
+        requestThread = new ThreadWorker(PullRequest);
+
+        pathingThread.Start();
+        requestThread.Start();
     }
 
-    public void Update()
+    public void OnDestroy()
     {
-        for (int n = 0; n < requestsPerUpdate; n++)
-        {
-            if (requests.Count > 0)
-            {
-                currentRequest = requests.Dequeue();
-                currentRequest.actor.currentPath = Path.Find( currentRequest.actor.GetCellAtGrid(), World.at(currentRequest.target.x, currentRequest.target.y) );
-            }
-        }
+        pathingThread.Kill();
+        requestThread.Kill();
     }
 
-    public static void RequestPath(Actor actor, int targetX, int targetY)
+    public void HandleRequest()
     {
-        //  Try to find an existing request for this actor
-        PathRequest request = null; //Instance.requests.Find(x => x.actor == actor);
+        pathingQueue.TryDequeue(out currentRequest);
+        if (currentRequest == null) return;
 
-        foreach (PathRequest r in Instance.requests)
+        Stopwatch timer = new Stopwatch();
+        timer.Start();
+
+        currentRequest.actor.currentPath = Path.Find( currentRequest.actor.GetCellAtGrid(), World.at(currentRequest.target.x, currentRequest.target.y) );
+
+        timer.Stop();
+        UnityEngine.Debug.Log( string.Format("pathfind took {0}ms", timer.ElapsedMilliseconds) );
+
+
+    }
+
+    public void PullRequest()
+    {
+        PathRequest request;
+        requests.TryDequeue(out request);
+        if (request == null) return;
+
+        //  Try to find an existing pathing attempt for this actor
+        PathRequest pathfind = null;
+
+        foreach (PathRequest r in Instance.pathingQueue)
         {
-            if (r.actor == actor)
+            if (r.actor == request.actor)
             {
-                request = r;
+                pathfind = r;
                 break;
             }
         }
 
         //  Create a request if there isn't one, otherwise update it
-        if (request == null)
-            Instance.requests.Enqueue( new PathRequest(actor, targetX, targetY) );
+        if (pathfind == null)
+            Instance.pathingQueue.Enqueue(request);
         else
-            request.target = new Coord2D(targetX, targetY);
+            request.target = new Coord2D(request.target.x, request.target.y);
     }
 }
 
