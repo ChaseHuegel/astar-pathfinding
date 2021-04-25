@@ -11,6 +11,7 @@ public class Cell : IHeapItem<Cell>
     public int x, y;
     public byte weight = 0;
     public bool occupied = false;
+    public bool passable = true;
 
     //  Pathfinding info
     //  TODO: try to pull this out of the cell class

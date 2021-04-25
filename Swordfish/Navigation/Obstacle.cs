@@ -5,8 +5,10 @@ using UnityEngine;
 namespace Swordfish.Navigation
 {
 
-public class Obstacle : Actor
+public class Obstacle : Body
 {
+    public bool bakeOnStart = false;
+    public bool rebake = false;
     public Vector2 dimensions;
     public Vector2 offset;
 
@@ -14,14 +16,52 @@ public class Obstacle : Actor
     {
         base.Initialize();
 
+        if (bakeOnStart) BakeToGrid();
+    }
+
+    public void Update()
+    {
+        if (rebake)
+        {
+            UnbakeFromGrid();
+            BakeToGrid();
+            rebake = false;
+        }
+    }
+
+    public void OnDestroy()
+    {
+        UnbakeFromGrid();
+    }
+
+    public void BakeToGrid()
+    {
         //  Block all cells within bounds
         Cell cell;
         for (int x = 0; x < dimensions.x; x++)
         {
             for (int y = 0; y < dimensions.y; y++)
             {
-                cell = World.GetGrid().at( (int)(transform.position.x + offset.x - Mathf.Floor(dimensions.x/2)) + x, (int)(transform.position.z + offset.y - Mathf.Floor(dimensions.y/2)) + y );
-                cell.weight = 10;
+                Vector3 pos = transform.position - World.GetPositionOffset();
+
+                cell = World.GetGrid().at( Mathf.RoundToInt(pos.x + offset.x - Mathf.Floor(dimensions.x/2)) + x, Mathf.RoundToInt(pos.z + offset.y - Mathf.Floor(dimensions.y/2)) + y );
+                cell.passable = false;
+            }
+        }
+    }
+
+    public void UnbakeFromGrid()
+    {
+        //  Unblock all cells within bounds
+        Cell cell;
+        for (int x = 0; x < dimensions.x; x++)
+        {
+            for (int y = 0; y < dimensions.y; y++)
+            {
+                Vector3 pos = transform.position - World.GetPositionOffset();
+
+                cell = World.GetGrid().at( Mathf.RoundToInt(pos.x + offset.x - Mathf.Floor(dimensions.x/2)) + x, Mathf.RoundToInt(pos.z + offset.y - Mathf.Floor(dimensions.y/2)) + y );
+                cell.passable = true;
             }
         }
     }

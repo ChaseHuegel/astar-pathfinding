@@ -61,7 +61,7 @@ public class Path
             foreach(Cell neighbor in current.neighbors())
             {
                 //  Ignore this neighbor if we can't path to it or it has already been tested
-                if (neighbor.weight != 0 || testedList.Contains(neighbor))
+                if (!neighbor.passable || testedList.Contains(neighbor))
                 {
                     continue;
                 }
@@ -76,7 +76,7 @@ public class Path
                 {
                     neighbor.gCost = (byte)moveCost;    //  Move cost
                     neighbor.hCost = (byte)Distance( neighbor.GetCoord(), end.GetCoord() ); //  Heuristic move cost
-                    neighbor.fCost = (byte)(neighbor.gCost + neighbor.hCost);   //  Final move cost
+                    neighbor.fCost = (byte)(neighbor.gCost + neighbor.hCost + neighbor.weight);   //  Final move cost
 
                     neighbor.parent = current;  //  Assign parent for retracing a path to this neighbor
 

@@ -15,6 +15,10 @@ public class World : Singleton<World>
     public static Grid GetGrid() { return Instance.grid; }
     public static int GetGridSize() { return Instance.gridSize; }
     public static float GetGridUnit() { return Instance.gridUnit; }
+    public static float GetGridScale() { return Instance.gridSize * Instance.gridUnit; }
+    public static Vector3 GetGridOffset() { return new Vector3(GetGridScale() * -0.5f, 0f, GetGridScale() * -0.5f); }
+    public static Vector3 GetGridOrigin() { return Instance.transform.position; }
+    public static Vector3 GetPositionOffset() { return (GetGridOffset() + GetGridOrigin()) * GetGridUnit(); }
 
     //  Shorthand access to grid
     public static Cell at(int x, int y) { return Instance.grid.at(x, y); }
@@ -29,28 +33,33 @@ public class World : Singleton<World>
     {
         if (Application.isEditor != true) return;
 
-        Gizmos.matrix = Matrix4x4.TRS(new Vector3(-0.5f, 0f, -0.5f), Quaternion.identity, transform.lossyScale);
+        Gizmos.matrix = Matrix4x4.TRS(new Vector3(-0.5f, 0f, -0.5f) + GetGridOrigin() + GetGridOffset(), Quaternion.identity, transform.lossyScale);
 
         Gizmos.color = Color.yellow;
 
         //  Bounds
-        Gizmos.DrawLine( new Vector3(0, 0, 0), new Vector3(0, 0, gridSize) );
-        Gizmos.DrawLine( new Vector3(0, 0, gridSize), new Vector3(gridSize, 0, gridSize));
-        Gizmos.DrawLine( new Vector3(gridSize, 0, gridSize), new Vector3(gridSize, 0, 0) );
-        Gizmos.DrawLine( new Vector3(gridSize, 0, 0), new Vector3(0, 0, 0) );
+        Gizmos.DrawLine( new Vector3(0, 0, 0), new Vector3(0, 0, GetGridScale()) );
+        Gizmos.DrawLine( new Vector3(0, 0, GetGridScale()), new Vector3(GetGridScale(), 0, GetGridScale()));
+        Gizmos.DrawLine( new Vector3(GetGridScale(), 0, GetGridScale()), new Vector3(GetGridScale(), 0, 0) );
+        Gizmos.DrawLine( new Vector3(GetGridScale(), 0, 0), new Vector3(0, 0, 0) );
 
         //  Grid
-        // for (int x = 0; x < gridSize + 1; x++)
-        // {
-        //     //  Draw columns
-        //     Gizmos.DrawLine( new Vector3(x * gridUnit, 0, 0), new Vector3(x * gridUnit, 0, gridSize * gridUnit) );
+        for (int x = 0; x < gridSize; x++)
+        {
+            for (int y = 0; y < gridSize; y++)
+            {
+                //  Create a checkered pattern
+                bool upper = (x % 2 == 0 && y % 2 != 0);
+                bool lower = (x % 2 != 0 && y % 2 == 0);
+                Gizmos.color = (upper || lower) ? Color.gray : Color.black;
 
-        //     for (int z = 0; z < gridSize + 1; z++)
-        //     {
-        //         //  Draw rows
-        //         Gizmos.DrawLine( new Vector3(0, 0, z * gridUnit), new Vector3(gridSize * gridUnit, 0, z * gridUnit) );
-        //     }
-        // }
+                if (grid != null && !at(x, y).passable)
+                {
+                    Gizmos.color = Color.yellow;
+                    Gizmos.DrawCube(new Vector3(x + 0.5f, 0f, y + 0.5f), new Vector3(GetGridUnit(), 0f, GetGridUnit()));
+                }
+            }
+        }
     }
 }
 

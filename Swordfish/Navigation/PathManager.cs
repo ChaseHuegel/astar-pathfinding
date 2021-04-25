@@ -34,8 +34,11 @@ public class PathManager : Singleton<PathManager>
     {
         for (int n = 0; n < requestsPerUpdate; n++)
         {
-            currentRequest = requests.Dequeue();
-            currentRequest.actor.currentPath = Path.Find( currentRequest.actor.GetCell(), World.at(currentRequest.target.x, currentRequest.target.y) );
+            if (requests.Count > 0)
+            {
+                currentRequest = requests.Dequeue();
+                currentRequest.actor.currentPath = Path.Find( currentRequest.actor.GetCellAtGrid(), World.at(currentRequest.target.x, currentRequest.target.y) );
+            }
         }
     }
 

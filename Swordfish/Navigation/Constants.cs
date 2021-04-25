@@ -5,9 +5,11 @@ namespace Swordfish.Navigation
 
 public class Constants
 {
-    public const int PATH_HEAP_SIZE = 256;
+    public const int ACTOR_TICK_RATE = 10;
 
-    public const int PATHFINDING_MAX_ATTEMPTS = 16;
+    public const int PATH_HEAP_SIZE = 1024;
+    public const int PATH_WAIT_TRIES = 8;
+    public const int PATH_REPATH_TRIES = 4;
 }
 
 }
