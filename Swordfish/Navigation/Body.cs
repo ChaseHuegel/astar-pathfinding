@@ -96,11 +96,11 @@ public class Body : MonoBehaviour
     //  Perform a 'soft' snap by truncating. Inaccurate but less overhead.
     public void SnapToGrid()
     {
-        transform.position = new Vector3( (int)transform.position.x, transform.position.y, (int)transform.position.z );
-
         Vector3 pos = World.ToWorldSpace(transform.position);
         gridPosition.x = (int)pos.x;
         gridPosition.y = (int)pos.z;
+
+        UpdateTransform();
 
         UpdateCell();
     }
@@ -108,11 +108,12 @@ public class Body : MonoBehaviour
     //  Perform a 'hard' snap by rounding. More accurate with more overhead.
     public void HardSnapToGrid()
     {
-        transform.position = new Vector3( Mathf.RoundToInt(transform.position.x), transform.position.y, Mathf.RoundToInt(transform.position.z) );
-
         Vector3 pos = World.ToWorldSpace(transform.position);
+
         gridPosition.x = Mathf.RoundToInt(pos.x);
         gridPosition.y = Mathf.RoundToInt(pos.z);
+
+        UpdateTransform();
 
         UpdateCell();
     }
@@ -120,7 +121,7 @@ public class Body : MonoBehaviour
     //  Force the transform to match the grid position
     public void UpdateTransform()
     {
-        transform.position = World.ToWorldSpace(new Vector3(gridPosition.x, transform.position.y, gridPosition.y));
+        transform.position = World.ToTransformSpace(new Vector3(gridPosition.x, transform.position.y, gridPosition.y));
     }
 #endregion
 }

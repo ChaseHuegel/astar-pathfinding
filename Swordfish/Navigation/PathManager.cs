@@ -59,15 +59,7 @@ public class PathManager : Singleton<PathManager>
         pathingQueue.TryDequeue(out currentRequest);
         if (currentRequest == null) return;
 
-        Stopwatch timer = new Stopwatch();
-        timer.Start();
-
         currentRequest.actor.currentPath = Path.Find( currentRequest.actor.GetCellAtGrid(), World.at(currentRequest.target.x, currentRequest.target.y) );
-
-        timer.Stop();
-        UnityEngine.Debug.Log( string.Format("pathfind took {0}ms", timer.ElapsedMilliseconds) );
-
-
     }
 
     public void PullRequest()

@@ -19,6 +19,7 @@ public class World : Singleton<World>
     public static Vector3 GetGridOffset() { return new Vector3((GetSize() - 0.5f) * -0.5f, 0f, (GetSize() - 0.5f) * -0.5f); }
 
     //  World info
+    public static float GetLength() { return Instance.gridSize; }
     public static float GetSize() { return Instance.gridSize * Instance.gridUnit; }
     public static Vector3 GetOrigin() { return Instance.transform.position; }
 
@@ -36,8 +37,15 @@ public class World : Singleton<World>
     //  Convert from transform units to grid units
     public static Vector3 ToWorldSpace(Vector3 pos)
     {
-        Vector3 result = ((pos + World.GetOrigin()) + (Vector3.one * World.GetSize()/2)) / World.GetUnit();
+        // Vector3 result = ((pos + World.GetOrigin()) + (Vector3.one * World.GetSize()/2)) / World.GetUnit();
+
+        Vector3 result = pos - (GetOrigin() * GetUnit()) + (Vector3.one * World.GetSize()/2f);
+        result /= World.GetUnit();
+
+        result.x = Mathf.FloorToInt( result.x );
+        result.z = Mathf.FloorToInt( result.z );
         result.y = pos.y;
+
         return result;
     }
 
@@ -52,7 +60,7 @@ public class World : Singleton<World>
         if (Application.isEditor != true) return;
 
         //  Center at 0,0 on the grid
-        Gizmos.matrix = Matrix4x4.TRS(ToTransformSpace(Vector3.zero), Quaternion.identity, Vector3.one);
+        Gizmos.matrix = Matrix4x4.TRS(ToTransformSpace(GetOrigin()), Quaternion.identity, Vector3.one);
         Gizmos.color = Color.yellow;
 
         //  Bounds
@@ -62,7 +70,7 @@ public class World : Singleton<World>
         Gizmos.DrawLine( new Vector3(GetSize(), 0, 0), new Vector3(0, 0, 0) );
 
         //  Center on the world origin
-        Gizmos.matrix = Matrix4x4.TRS(GetOrigin(), Quaternion.identity, Vector3.one);
+        Gizmos.matrix = Matrix4x4.TRS(GetOrigin() * GetUnit(), Quaternion.identity, Vector3.one);
 
         //  Grid
         for (int x = 0; x < gridSize; x++)
@@ -77,8 +85,9 @@ public class World : Singleton<World>
                 if (grid != null && !at(x, y).passable)
                 {
                     Gizmos.color = Color.yellow;
-                    Gizmos.DrawCube( ToTransformSpace(new Vector3(x, 0f, y)), new Vector3(GetUnit(), 0f, GetUnit()));
+
                 }
+                Gizmos.DrawCube( ToTransformSpace( new Vector3(x, 0f, y) ), new Vector3(GetUnit(), 0f, GetUnit()));
             }
         }
     }
