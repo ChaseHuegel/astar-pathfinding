@@ -1,3 +1,4 @@
+![916056447ac65d11c55da70350e6605e](https://user-images.githubusercontent.com/14932139/117926069-2e00b880-b2c6-11eb-9536-3a4fa59662e1.gif)
 # astar-pathfinding
 Multithreaded A* pathfinding in C# for my Swordfish library with simple but clever pathfinding AI
 
@@ -8,7 +9,7 @@ This project will continue to be updated to make a robust and fast A* solution t
 ### V4
 5/6/2021 - Actor behavior greatly improved and revised the system for AI pathing to be driven by abstract goals wrapped into a simple state machine. Using events, the user defines conditions for a goal to become a target, what happens when it is found, and what happens when it is interacted with. If an Actor has no goals, they will idle. By default, an Actor will roam aimlessly until it discovers a goal in its vicinity after which it will path to it. Below is the system in use for a group of lumberjacks collecting and dropping off wood. This behavior hasn't been committed to this branch as of yet as its still getting some refinement, but you can check out the project its in here: https://github.com/ChaseHuegel/vr-rts
 
-![43f57adbb9db67225174e72f0bfce673](https://user-images.githubusercontent.com/14932139/117390717-adece400-aebc-11eb-97ed-f37011cf553a.gif)
+![916056447ac65d11c55da70350e6605e](https://user-images.githubusercontent.com/14932139/117926077-322cd600-b2c6-11eb-898f-3d4ac70948a1.gif)
 
 ### V3
 If an Actor's path becomes blocked, they will wait for a time to see if their path clears. On failure, they attempt finding a new path a number of times. If they can't find a new path, they give up and stay where they are.
