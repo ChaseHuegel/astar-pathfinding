@@ -7,12 +7,6 @@ namespace Swordfish.Navigation
 
 public class Cell : IHeapItem<Cell>
 {
-    public Grid grid = null;
-    public int x, y;
-    public byte weight = 0;
-    public bool occupied = false;
-    public bool passable = true;
-
     //  Pathfinding info
     //  TODO: try to pull this out of the cell class
     //  Currently this has the least memory overhead
@@ -28,6 +22,34 @@ public class Cell : IHeapItem<Cell>
         set { heapIndex = value; }
     }
 
+    //  Cell info
+    public Grid grid = null;
+    public int x, y;
+    public byte weight = 0;
+    public bool passable = true;
+
+    //  Occupants
+    public List<Body> occupants = new List<Body>();
+    public bool occupied { get { return occupants.Count > 0; } }
+
+    public Body GetFirstOccupant()
+    {
+        return occupants[0];
+    }
+
+    public T GetFirstOccupant<T>() where T : Body
+    {
+        if (occupied && occupants[0] is T)
+            return (T)occupants[0];
+
+        return null;
+    }
+
+    public T GetOccupant<T>() where T : Body
+    {
+        return (T)occupants.Find(x => x is T);
+    }
+
     public int CompareTo(Cell cell)
     {
         int compare = fCost.CompareTo(cell.fCost);
@@ -36,6 +58,11 @@ public class Cell : IHeapItem<Cell>
             compare = hCost.CompareTo(cell.hCost);
 
         return -compare;
+    }
+
+    public bool IsBlocked()
+    {
+        return (occupied || !passable);
     }
 
     public Coord2D GetCoord()

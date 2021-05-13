@@ -21,6 +21,11 @@ public class Heap<T> where T : IHeapItem<T>
 		items = new T[size];
 	}
 
+	public bool IsFull()
+	{
+		return count >= (items.Length);
+	}
+
 	public void Add(T item)
     {
 		item.HeapIndex = count;

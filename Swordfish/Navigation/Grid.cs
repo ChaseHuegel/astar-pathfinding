@@ -28,6 +28,7 @@ public class Grid
 
     public Cell at(Vector3 pos) { pos = World.ToWorldSpace(pos); return at((int)pos.x, (int)pos.z); }
     public Cell at(int x, int y) { return grid[ Mathf.Clamp(x, 0, size - 1) , Mathf.Clamp(y, 0, size - 1) ]; }
+    public Cell atUnsafe(int x, int y) { return grid[x, y]; }
 
     public int GetDistance(int x, int y, int x2, int y2)
     {

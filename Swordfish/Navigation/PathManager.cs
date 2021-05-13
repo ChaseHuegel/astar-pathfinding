@@ -59,7 +59,12 @@ public class PathManager : Singleton<PathManager>
         pathingQueue.TryDequeue(out currentRequest);
         if (currentRequest == null) return;
 
-        currentRequest.actor.currentPath = Path.Find( currentRequest.actor.GetCellAtGrid(), World.at(currentRequest.target.x, currentRequest.target.y) );
+        currentRequest.actor.currentPath = Path.Find(
+            currentRequest.actor.GetCellAtGrid(),
+            World.at(currentRequest.target.x, currentRequest.target.y),
+            currentRequest.actor.GetGoals(),
+            currentRequest.ignoreActors
+            );
     }
 
     public void PullRequest()

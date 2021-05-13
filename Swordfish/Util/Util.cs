@@ -51,6 +51,12 @@ namespace Swordfish
             return Mathf.Sqrt(distanceSquared);
         }
 
+        public static float DistanceUnsquared(Coord2D firstPosition, Coord2D secondPosition)
+        {
+            return (firstPosition.x - secondPosition.x) * (firstPosition.x - secondPosition.x) +
+                    (firstPosition.y - secondPosition.y) * (firstPosition.y - secondPosition.y);
+        }
+
         public static float DistanceUnsquared(Vector3 firstPosition, Vector3 secondPosition)
         {
             return (firstPosition.x - secondPosition.x) * (firstPosition.x - secondPosition.x) +
