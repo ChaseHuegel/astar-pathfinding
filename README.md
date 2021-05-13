@@ -6,10 +6,13 @@ An implementation of A* in C# that plugs right into Unity. To get started, creat
 
 This project will continue to be updated to make a robust and fast A* solution thats easily extensible and highly configurable.
 
-### V4
-5/6/2021 - Actor behavior greatly improved and revised the system for AI pathing to be driven by abstract goals wrapped into a simple state machine. Using events, the user defines conditions for a goal to become a target, what happens when it is found, and what happens when it is interacted with. If an Actor has no goals, they will idle. By default, an Actor will roam aimlessly until it discovers a goal in its vicinity after which it will path to it. Below is the system in use for a group of villagers that can build, repair, mine, cut wood, and deliver resources. This behavior hasn't been committed to this branch as of yet as its still getting some refinement, but you can check out the project its in here: https://github.com/ChaseHuegel/vr-rts
+### V5
+Large overhauls to the system with large performance improvements. AI has refined decision making logic that is managed via the goal system. Pathing and the actor logic behind it has seen small adjustments that have a large impact on intelligence and avoidance. There is a lot to explain with the huge changes, it is best demonstrated! See the example folder for an idea of the current usage. This is a very stripped down version of what is currently used in my VR-RTS collab https://github.com/ChaseHuegel/vr-rts
 
 ![916056447ac65d11c55da70350e6605e](https://user-images.githubusercontent.com/14932139/117926077-322cd600-b2c6-11eb-898f-3d4ac70948a1.gif)
+
+### V4
+Actor behavior greatly improved and revised the system for AI pathing to be driven by abstract goals wrapped into a simple state machine. Using events, the user defines conditions for a goal to become a target, what happens when it is found, and what happens when it is interacted with. If an Actor has no goals, they will idle. By default, an Actor will roam aimlessly until it discovers a goal in its vicinity after which it will path to it. Below is the system in use for a group of villagers that can build, repair, mine, cut wood, and deliver resources. This behavior hasn't been committed to this branch as of yet as its still getting some refinement.
 
 ### V3
 If an Actor's path becomes blocked, they will wait for a time to see if their path clears. On failure, they attempt finding a new path a number of times. If they can't find a new path, they give up and stay where they are.
