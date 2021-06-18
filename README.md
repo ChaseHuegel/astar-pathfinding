@@ -1,10 +1,33 @@
-![916056447ac65d11c55da70350e6605e](https://user-images.githubusercontent.com/14932139/117926069-2e00b880-b2c6-11eb-9536-3a4fa59662e1.gif)
+
+
+https://user-images.githubusercontent.com/14932139/122598096-610f3800-d03a-11eb-944b-41615e9392a1.mp4
+
 # astar-pathfinding
 Multithreaded A* pathfinding in C# for my Swordfish library with simple but clever pathfinding AI
 
-An implementation of A* in C# that plugs right into Unity. To get started, create a class inheriting from Actor and then use Actor.Goto() and watch it come to life it avoids other actors and obstacles! The pathfinding grid can be updated on the fly for dynamic environments, which allows for actors to be considered obstacles and gives way for something like an RTS where a player can put down a building. The Obstacle class is a static actor which will block a specified rectangle area from pathing. Use the obstacle class to define trees, rocks, buildings, etc. See VillagerActor.cs for an example of how to use Actor.Goto
+An implementation of A* (and associated AI) in C# that plugs right into Unity. To get started, you need a World component to define your grid and a class inheriting from Actor. Call Actor.Goto and it will navigate the grid avoiding Obstacles and Actors. Use the Obstacle component to define impassable areas. The system is designed for dynamic changes to the grid, so baking is not used and runtime modifications are fast.
 
-This project will continue to be updated to make a robust and fast A* solution thats easily extensible and highly configurable.
+See TestActor.cs for a simple example of how to make use of the A* pathfinding. To utilize the more hands-off AI behavior, call Actor.GotoNearestGoal or Actor.GotoNearestGoalWithPriority. This requires implementing Goals.
+
+This project will continue to be updated to make a robust and fast solution thats easily extensible and highly configurable.
+
+### V6
+This update has some performance improvements and bug fixes, but the bulk of the changes are related to providing more control and tools to the user, smarter and more dynamic AI, and consistency in Actor behavior. There has also been some minor refactoring and cleaning up of the code, and additional comments on complex pieces. However, readability and documentation across the board is on the TODO list and not a focus at the moment. There have also been some minor access changes (privating Actor methods that can cause unwanted behavior) but the whole codebase needs a pass over (... and documentation) to make sure there is little room for user error.
+
+Most importantly goals are now dynamically managed by Actor similarly to the re-pathing behavior. An Actor will change its goal priorities if it struggles or is unable to reach a goal. For behavior consistency, Actors have a short term memory of the goals they've previously interacted with. The Actor will prioritize memorized goals over searching the area around them. In addition, Actors now have the flag doMicroSearching which allows them to perform small goal searches along their path and potentially re-path. The default behavior prevents goal searching while the Actor is pathing so that the user has exact control over their movements, by enabling the micro search behavior you lose a degree of control for dynamics such as an Actor reacting to other Actors (i.e. chasing). Last another important change is that Actors will now target Bodies as goals wherever they are available. This allows actors to keep track of moving goals (i.e. other actors..)
+
+#### Changes
+- Dynamic goals
+- More events to access pathing and goals
+- More pathing controls: locking, pathable vs walkable cells (Cell.canPassThru), etc.
+- AI memory functionality
+- Performance (Goal caching, smarter goal searches, search optimizations)
+- Toggleable micro-searching during pathing
+- Minor refactoring to prevent user error
+- Actors can now target Bodies where available
+- Thread-safe fixes
+- AI idling fix
+- ...several other minor fixes
 
 ### V5
 Large overhauls to the system with large performance improvements. AI has refined decision making logic that is managed via the goal system. Pathing and the actor logic behind it has seen small adjustments that have a large impact on intelligence and avoidance. There is a lot to explain with the huge changes, it is best demonstrated! See the example folder for an idea of the current usage. This is a very stripped down version of what is currently used in my VR-RTS collab https://github.com/ChaseHuegel/vr-rts
