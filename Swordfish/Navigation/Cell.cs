@@ -27,6 +27,7 @@ public class Cell : IHeapItem<Cell>
     public int x, y;
     public byte weight = 0;
     public bool passable = true;
+    public bool canPathThru = false;
 
     //  Occupants
     public List<Body> occupants = new List<Body>();
@@ -34,7 +35,10 @@ public class Cell : IHeapItem<Cell>
 
     public Body GetFirstOccupant()
     {
-        return occupants[0];
+        if (occupants.Count > 0)
+            return occupants[0];
+        else
+            return null;
     }
 
     public T GetFirstOccupant<T>() where T : Body
@@ -76,6 +80,26 @@ public class Cell : IHeapItem<Cell>
             x + (int)dir.toVector3().x,
             y + (int)dir.toVector3().z
             );
+    }
+
+    public Cell neighborNE()
+    {
+            return grid.at(x + 1, y + 1);
+    }
+
+    public Cell neighborNW()
+    {
+            return grid.at(x - 1, y + 1);
+    }
+
+    public Cell neighborSE()
+    {
+            return grid.at(x + 1, y - 1);
+    }
+
+    public Cell neighborSW()
+    {
+            return grid.at(x - 1, y - 1);
     }
 
     public List<Cell> neighbors()

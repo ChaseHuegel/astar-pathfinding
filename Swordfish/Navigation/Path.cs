@@ -66,10 +66,38 @@ public class Path
             //  Not there yet! Go through all neighbors of the current cell..
             foreach(Cell neighbor in current.neighbors())
             {
-                if (neighbor != end )
+                if (neighbor != end && neighbor.canPathThru == false)
                 {
-                    //  Ignore this neighbor if its solid or it has already been tested
-                    if (!neighbor.passable || testedList.Contains(neighbor))
+                    //-------------------------------------------------------
+                    // Check diagonals
+
+                    if (neighbor == current.neighborNW())
+                    {
+                        if (!current.neighbor(Direction.WEST).passable &&
+                            !current.neighbor(Direction.NORTH).passable)
+                            continue;
+                    }
+                    else if (neighbor == current.neighborNE())
+                    {
+                        if (!current.neighbor(Direction.EAST).passable &&
+                            !current.neighbor(Direction.NORTH).passable)
+                            continue;
+                    }
+                    else if (neighbor == current.neighborSE())
+                    {
+                        if (!current.neighbor(Direction.EAST).passable &&
+                            !current.neighbor(Direction.SOUTH).passable)
+                            continue;
+                    }
+                    else if (neighbor == current.neighborSW())
+                    {
+                        if (!current.neighbor(Direction.WEST).passable &&
+                            !current.neighbor(Direction.SOUTH).passable)
+                            continue;
+                    }
+
+                    //  Ignore this neighbor if its solid
+                    if (!neighbor.passable)
                         continue;
 
                     //  Are we pathing around actors? If so, ignore occupied neighbors
@@ -78,6 +106,10 @@ public class Path
                     if (!ignoreActors && neighbor.occupied)
                         continue;
                 }
+
+                //  Last resort, ignore neighbor if it has been tested
+                if (testedList.Contains(neighbor))
+                    continue;
 
                 bool neighborInOpenList = openList.Contains(neighbor);
 

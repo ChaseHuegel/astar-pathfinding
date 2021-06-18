@@ -1,6 +1,8 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace Swordfish.Navigation
 {
@@ -17,34 +19,15 @@ public class Body : MonoBehaviour
 
     private void Start()
     {
-        //  Snap to the grid with rounding
-        //  Round instead of truncate the initial position (i.e. obstacles which don't align with the grid)
-        //  Rounding is more accurate but has more overhead than truncating
-        //  Do NOT round unless necessary! Movement is bound to the grid, accuracy not an issue
-        HardSnapToGrid();
-
+        SyncPosition();
         Initialize();
     }
 
-    // public virtual void OnDrawGizmos()
-    // {
-    //     if (Application.isEditor != true || Application.isPlaying) return;
-
-    //     Vector3 pos = transform.position;
-    //     pos.x += boundingOrigin.x;
-    //     pos.z += boundingOrigin.y;
-
-    //     Vector3 worldPos = World.ToWorldSpace(pos);
-    //     Vector3 gridPoint = World.ToTransformSpace( worldPos);
-
-    //     Gizmos.matrix = Matrix4x4.TRS(gridPoint - World.GetUnitOffset(), Quaternion.identity, Vector3.one * GetBoundsVolume());
-    //     Gizmos.color = Color.cyan;
-
-    //     Gizmos.DrawLine( new Vector3(0, 0, 0), new Vector3(0, 0, World.GetUnit()) );
-    //     Gizmos.DrawLine( new Vector3(0, 0, World.GetUnit()), new Vector3(World.GetUnit(), 0,World.GetUnit()));
-    //     Gizmos.DrawLine( new Vector3(World.GetUnit(), 0, World.GetUnit()), new Vector3(World.GetUnit(), 0, 0) );
-    //     Gizmos.DrawLine( new Vector3(World.GetUnit(), 0, 0), new Vector3(0, 0, 0) );
-    // }
+    private void OnDestroy()
+    {
+        if (Application.isPlaying && gameObject.scene.isLoaded)
+            RemoveFromGrid();
+    }
 
 
 #region getters setters
@@ -55,9 +38,27 @@ public class Body : MonoBehaviour
         return World.Grid.at((int)pos.x, (int)pos.z);
     }
 
-    public Cell GetCellAtGrid()
+    public Cell GetCellAtGrid() => World.Grid.at(gridPosition.x, gridPosition.y);
+
+    public Cell GetCellDirectional(Coord2D from) => World.at(GetDirectionalCoord(from));
+
+    public Coord2D GetDirectionalCoord(Coord2D from)
     {
-        return World.Grid.at(gridPosition.x, gridPosition.y);
+        Vector2 dir = (from.toVector2() - gridPosition.toVector2()).normalized;
+        Vector2 offset = Vector2.zero;
+
+        float dimX = boundingDimensions.x;
+        float dimY = boundingDimensions.y;
+
+        offset.x = dimX * dir.x * 0.5f;
+        offset.y = dimY * dir.y * 0.5f;
+
+        if (dir.x < 0f) offset.x -= 0.5f;
+        if (dir.y < 0f) offset.y -= 0.5f;
+
+        Vector3 pos = World.ToTransformSpace(gridPosition.x + offset.x, 0f, gridPosition.y + offset.y);
+
+        return World.ToWorldCoord(pos);
     }
 
     public Coord2D GetNearbyCoord()
@@ -90,6 +91,7 @@ public class Body : MonoBehaviour
         return (boundingDimensions.x + boundingDimensions.y);
     }
 
+    public int DistanceTo(Body body) { return DistanceTo(body.gridPosition); }
     public int DistanceTo(Cell cell) { return DistanceTo(cell.x, cell.y); }
     public int DistanceTo(Coord2D coord) { return DistanceTo(coord.x, coord.y); }
     public int DistanceTo(int x, int y)
@@ -105,7 +107,6 @@ public class Body : MonoBehaviour
     public bool CanSetPosition(int x, int y, bool ignoreOccupied = false)
     {
         Cell to = World.at(x, y);
-
         if (to.passable)
         {
             if (to.occupied && !ignoreOccupied)
@@ -158,6 +159,9 @@ public class Body : MonoBehaviour
     }
 
     //  Force to a spot in the grid regardless of what else is there
+    public void SetPositionUnsafe(Coord2D coord) { SetPositionUnsafe(coord.x, coord.y); }
+    public void SetPositionUnsafe(Coord3D coord) { SetPositionUnsafe(coord.x, coord.z); }
+    public void SetPositionUnsafe(Vector3 pos) { SetPositionUnsafe((int)pos.x, (int)pos.z); }
     public void SetPositionUnsafe(int x, int y)
     {
         Cell to = World.at(x, y);
@@ -170,39 +174,52 @@ public class Body : MonoBehaviour
         gridPosition.y = y;
     }
 
+    //  Update grid position to match transform position
+    //  This is similar to removing from grid, moving, and snapping to grid
+    //  Use this to fix desync between the grid and transform pos
+    public void SyncPosition()
+    {
+        Coord2D worldPos = World.ToWorldCoord(transform.position);
+
+        Cell to = World.at(worldPos.x, worldPos.y);
+        Cell from = GetCellAtGrid();
+
+        from.occupants.Remove(this);
+        to.occupants.Add(this);
+
+        gridPosition.x = worldPos.x;
+        gridPosition.y = worldPos.y;
+    }
+
     //  Remove this body from the grid
     public void RemoveFromGrid()
     {
         Cell cell = World.at(gridPosition);
         cell.passable = true;
+        cell.canPathThru = false;
         cell.occupants.Remove(this);
-    }
-
-    //  Perform a 'soft' snap by truncating. Inaccurate but less overhead.
-    public void SnapToGrid()
-    {
-        Vector3 pos = World.ToWorldSpace(transform.position);
-        gridPosition.x = (int)pos.x;
-        gridPosition.y = (int)pos.z;
-
-        UpdateTransform();
-    }
-
-    //  Perform a 'hard' snap by rounding. More accurate with more overhead.
-    public void HardSnapToGrid()
-    {
-        Vector3 pos = World.ToWorldSpace(transform.position);
-
-        gridPosition.x = Mathf.RoundToInt(pos.x);
-        gridPosition.y = Mathf.RoundToInt(pos.z);
-
-        UpdateTransform();
     }
 
     //  Force the transform to match the grid position
     public void UpdateTransform()
     {
         transform.position = World.ToTransformSpace(new Vector3(gridPosition.x, transform.position.y, gridPosition.y));
+
+        //  If origin has been set, use it. Otherwise, calculate it.
+        if (boundingOrigin != Vector2.zero)
+            transform.position += new Vector3(boundingOrigin.x, 0f, boundingOrigin.y);
+        else
+        {
+            Vector3 modPos = transform.position;
+
+            if (boundingDimensions.x % 2 == 0)
+                modPos.x = transform.position.x + World.GetUnit() * -0.5f;
+
+            if (boundingDimensions.y % 2 == 0)
+                modPos.z = transform.position.z + World.GetUnit() * -0.5f;
+
+            transform.position = modPos;
+        }
     }
 #endregion
 }
